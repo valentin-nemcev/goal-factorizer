@@ -1,7 +1,9 @@
 import { createElement as e } from 'react'
 import { render } from 'react-dom'
 
+import App from './App'
+
 render(
-  e('div', {}, 'Hey!'),
+  e(App),
   document.getElementById('root')
 )
