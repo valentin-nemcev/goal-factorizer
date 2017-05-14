@@ -20,6 +20,8 @@ const store = createStore(
   )
 )
 
+window.store = store
+
 render(
   e(Provider, {store}, e(App)),
   document.getElementById('root')

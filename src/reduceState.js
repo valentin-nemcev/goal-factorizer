@@ -2,20 +2,23 @@ import { createReducer } from 'redux-act'
 import { combineReducers } from 'redux-immutable'
 import { Map, OrderedMap, Record } from 'immutable'
 
-import { addGoal, removeGoal, updateGoal } from './actions'
+import { addNode, removeNode, updateNode } from './actions'
 
-const Goal = Record({text: 'Goal'})
+const Node = Record({text: 'Goal', type: null})
 
 let lastId = 0
 
 export default combineReducers({
 
-  goals: createReducer({
-    [addGoal]: (goals) => goals.set(lastId++, new Goal()),
-    [removeGoal]: (goals, {goalId}) => goals.delete(goalId),
-    [updateGoal]: (goals, {goalId, goal}) => goals.mergeIn([goalId], goal)
+  nodes: createReducer({
+    [addNode]: (nodes, type) => nodes.set(lastId++, new Node({type})),
+    [removeNode]: (nodes, {nodeId}) => nodes.delete(nodeId),
+    [updateNode]: (nodes, {nodeId, node}) => nodes.mergeIn([nodeId], node)
   }, OrderedMap({
-    [lastId++]: new Goal({text: 1}),
-    [lastId++]: new Goal({text: 2})
+    [lastId++]: new Node({text: 'Goal 1', type: 'goal'}),
+    [lastId++]: new Node({text: 'Goal 2', type: 'goal'}),
+    [lastId++]: new Node({text: 'Action 1', type: 'action'}),
+    [lastId++]: new Node({text: 'Action 2', type: 'action'}),
+    [lastId++]: new Node({text: 'Action 3', type: 'action'})
   }))
 }, Map)

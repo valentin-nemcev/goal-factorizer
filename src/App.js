@@ -1,39 +1,46 @@
 import { createElement as e } from 'react'
 import { connect } from 'react-redux'
-import { addGoal, removeGoal, updateGoal } from './actions'
+import { addNode, removeNode, updateNode } from './actions'
 
-const AddGoal = connect(null, {addGoal})(
-  ({addGoal}) => e('button', {onClick: addGoal}, 'Add goal')
+const AddNode = connect(null, {addNode})(
+  ({addNode, type}) => e('button', {onClick: () => addNode(type)}, 'Add node')
 )
 
-const Goal = connect(
+const Node = connect(
   null,
-  (dispatch, {goalId}) => ({
-    removeGoal: () => dispatch(removeGoal({goalId})),
-    updateGoal: (goal) => dispatch(updateGoal({goalId, goal}))
+  (dispatch, {nodeId}) => ({
+    removeNode: () => dispatch(removeNode({nodeId})),
+    updateNode: (node) => dispatch(updateNode({nodeId, node}))
   })
 )(
-  ({goal, removeGoal, updateGoal}) => e('div', {},
+  ({node, removeNode, updateNode}) => e('div', {},
     ' ',
     e('input', {
-      onChange: e => updateGoal({text: e.target.value}),
-      value: goal.text
+      onChange: e => updateNode({text: e.target.value}),
+      value: node.text
     }),
     ' ',
-    e('button', {onClick: removeGoal}, 'del')
+    e('button', {onClick: removeNode}, 'del')
   )
 )
 
-const GoalList = connect(state => ({goals: state.get('goals')}))(({goals}) =>
+const NodeList = ({type, nodes}) =>
   e('div', null,
-    goals.entrySeq().map(
-      (goal, goalId) => e(Goal, {key: goalId, goalId, goal})
+    e('h2', {}, type || '(No type)'),
+    nodes.entrySeq().map(
+      ([nodeId, node]) => e(Node, {key: nodeId, nodeId, node})
     ),
-    e(AddGoal)
+    e(AddNode, {type})
   )
-)
 
-export default () => e('div', null,
-  e('h2', {}, 'Goals'),
-  e(GoalList)
+export default connect(
+  state => ({
+    nodesByType: state.get('nodes').groupBy(n => n.type)
+  })
+)(
+  ({nodesByType}) => e('div', null,
+    nodesByType.entrySeq().map(
+      ([type, nodes]) => e(NodeList, {key: type, type, nodes})
+    )
+  )
 )
