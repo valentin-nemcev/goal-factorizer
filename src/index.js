@@ -5,7 +5,7 @@ import { compose, createStore, applyMiddleware } from 'redux'
 import { Provider } from 'react-redux'
 import { createLogger } from 'redux-logger'
 
-import reduceState from './reduceState'
+import { reduceState } from './state'
 import App from './App'
 
 const logger = createLogger({
