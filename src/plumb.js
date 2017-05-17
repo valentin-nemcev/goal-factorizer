@@ -37,6 +37,10 @@ export class Endpoint extends Component {
   }
 }
 
+const connectionParams = {
+  detachable: false
+}
+
 export class Edge extends PureComponent {
   _getEndpointRefs ({source, target}) {
     const [sourceRef, targetRef] = [source, target].map(
@@ -59,7 +63,12 @@ export class Edge extends PureComponent {
     const {sourceRef, targetRef} = this.state
     if (sourceRef && targetRef) {
       this.connection = this.jsPlumb
-        .connect({source: sourceRef, target: targetRef})
+        .connect({
+          ...connectionParams,
+          ...this.props.connection,
+          source: sourceRef,
+          target: targetRef
+        })
     }
   }
 

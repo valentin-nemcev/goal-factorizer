@@ -24,7 +24,7 @@ const Node = connect(
 )(
   ({nodeId, node, removeNode, updateNode, canvas}) => e(
     Endpoint,
-    {style: {marginTop: '1em'}, canvas, endpoint: nodeId},
+    {style: {marginTop: '1em', padding: '0 0.5em'}, canvas, endpoint: nodeId},
     nodeId,
     ' ',
     e('input', {
@@ -43,7 +43,7 @@ const Node = connect(
 )
 
 const NodeList = ({type, nodes, canvas}) =>
-  e('div', {style: {marginRight: '5em', padding: '0.5em'}},
+  e('div', {style: {marginRight: '8em'}},
     e('h2', {}, type || '(No type)'),
     nodes.entrySeq().map(
       ([nodeId, node]) => e(Node, {key: nodeId, nodeId, node, canvas})
@@ -67,6 +67,11 @@ export default connect(
           source,
           target,
           key: [source, target].join(':'),
+          connection: {
+            anchors: ['Right', 'Left'],
+            connector: ['Bezier', {curviness: 50}],
+            endpoint: ['Rectangle', {width: 2, height: 10}]
+          },
           canvas
         })
       )
