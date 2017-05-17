@@ -1,7 +1,9 @@
 import { createElement as e } from 'react'
 import { connect } from 'react-redux'
 import { Set } from 'immutable'
-import { getNodesByType, addNode, removeNode, updateNode } from './state'
+import { withCanvas, Endpoint, Edge } from './plumb'
+
+import { getNodesByType, getEdges, addNode, removeNode, updateNode } from './state'
 
 const AddNode = connect(null, {addNode})(
   ({addNode, type}) => e(
@@ -20,7 +22,9 @@ const Node = connect(
     updateNode: (node) => dispatch(updateNode({nodeId, node}))
   })
 )(
-  ({nodeId, node, removeNode, updateNode}) => e('div', {style: {marginTop: '1em'}},
+  ({nodeId, node, removeNode, updateNode, canvas}) => e(
+    Endpoint,
+    {style: {marginTop: '1em'}, canvas, endpoint: nodeId},
     nodeId,
     ' ',
     e('input', {
@@ -38,23 +42,34 @@ const Node = connect(
   )
 )
 
-const NodeList = ({type, nodes}) =>
+const NodeList = ({type, nodes, canvas}) =>
   e('div', {style: {marginRight: '5em', padding: '0.5em'}},
     e('h2', {}, type || '(No type)'),
     nodes.entrySeq().map(
-      ([nodeId, node]) => e(Node, {key: nodeId, nodeId, node})
+      ([nodeId, node]) => e(Node, {key: nodeId, nodeId, node, canvas})
     ),
     e(AddNode, {type})
   )
 
 export default connect(
   state => ({
-    nodesByType: getNodesByType(state)
+    nodesByType: getNodesByType(state),
+    edges: getEdges(state)
   })
 )(
-  ({nodesByType}) => e('div', {style: {display: 'flex'}},
-    nodesByType.map(
-      ([type, nodes]) => e(NodeList, {key: type, type, nodes})
+  withCanvas(
+    ({nodesByType, edges, canvas}) => e('div', {style: {display: 'flex'}},
+      nodesByType.map(
+        ([type, nodes]) => e(NodeList, {key: type, type, nodes, canvas})
+      ),
+      edges.map(
+        ({source, target}) => e(Edge, {
+          source,
+          target,
+          key: [source, target].join(':'),
+          canvas
+        })
+      )
     )
   )
 )
