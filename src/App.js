@@ -3,7 +3,15 @@ import { connect } from 'react-redux'
 import { Set } from 'immutable'
 import { withCanvas, Endpoint, Edge } from './plumb'
 
-import { getNodesByType, getEdges, addNode, removeNode, updateNode } from './state'
+import {
+  getNodesByType,
+  getEdges,
+  addNode,
+  removeNode,
+  updateNode,
+  toggleNodeParentsEditing,
+  toggleParent
+} from './state'
 
 const AddNode = connect(null, {addNode})(
   ({addNode, type}) => e(
@@ -15,16 +23,50 @@ const AddNode = connect(null, {addNode})(
 
 const strToParents = s => Set(s.split(/\s+/))
 
+const getIsParent = (state, node) => {
+  return node.parents.has(state.getIn(['local', 'parentEditNode']))
+}
+
 const Node = connect(
-  null,
+  (state, {node, nodeId}) => ({
+    parentEdit: state.getIn(['local', 'parentEditNode']) === nodeId,
+    globalParentEdit: state.getIn(['local', 'parentEditNode']) != null,
+    parentNodeId: state.getIn(['local', 'parentEditNode']),
+    isParent: getIsParent(state, node)
+  }),
   (dispatch, {nodeId}) => ({
     removeNode: () => dispatch(removeNode({nodeId})),
-    updateNode: (node) => dispatch(updateNode({nodeId, node}))
+    updateNode: (node) => dispatch(updateNode({nodeId, node})),
+    toggleParentEdit:
+      (toggle) => dispatch(toggleNodeParentsEditing({nodeId, toggle})),
+    toggleParent: (toggle, parentNodeId) => dispatch(toggleParent({
+      childNodeId: nodeId,
+      parentNodeId,
+      toggle
+    }))
   })
 )(
-  ({nodeId, node, removeNode, updateNode, canvas}) => e(
+  ({
+    nodeId,
+    node,
+    parentEdit,
+    parentNodeId,
+    isParent,
+    globalParentEdit,
+    removeNode,
+    updateNode,
+    toggleParentEdit,
+    toggleParent,
+    canvas
+  }) => e(
     Endpoint,
     {style: {marginTop: '1em', padding: '0 0.5em'}, canvas, endpoint: nodeId},
+    e('input', {
+      style: {visibility: globalParentEdit ? 'visible' : 'hidden'},
+      type: 'checkbox',
+      checked: isParent,
+      onChange: e => toggleParent(e.target.checked, parentNodeId)
+    }),
     nodeId,
     ' ',
     e('input', {
@@ -38,7 +80,12 @@ const Node = connect(
       value: node.text
     }),
     ' ',
-    e('button', {onClick: removeNode}, 'del')
+    e('button', {onClick: removeNode}, 'del'),
+    e('input', {
+      type: 'checkbox',
+      onChange: e => toggleParentEdit(e.target.checked),
+      checked: parentEdit
+    })
   )
 )
 
