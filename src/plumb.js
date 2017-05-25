@@ -3,6 +3,8 @@ import { jsPlumb } from 'jsplumb'
 
 import { Map } from 'immutable'
 
+import { debounce } from 'lodash'
+
 export const withCanvas = NestedComponent => class extends Component {
   constructor (props) {
     super(props)
@@ -10,6 +12,7 @@ export const withCanvas = NestedComponent => class extends Component {
     this.state = {
       endpoints: new Map()
     }
+    this.repaint = debounce(() => this.jsPlumb.repaintEverything())
   }
 
   render () {
@@ -18,6 +21,7 @@ export const withCanvas = NestedComponent => class extends Component {
 
   setEndpointRef (endpoint, el) {
     this.setState(({endpoints}) => ({endpoints: endpoints.set(endpoint, el)}))
+    this.repaint()
   }
 
   getEndpointRef (endpoint) {
