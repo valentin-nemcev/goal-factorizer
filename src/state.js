@@ -33,7 +33,7 @@ export const reduceState = combineReducers({
     [lastId++]: new Node({text: 'Action 3', type: 'action'})
   })),
   local: combineReducers({
-    parentEditNode: createReducer({
+    nodeInParentEditMode: createReducer({
       [toggleNodeParentsEditing]:
         (prevNodeId, {nodeId, toggle}) => toggle ? nodeId : null
     }, null)

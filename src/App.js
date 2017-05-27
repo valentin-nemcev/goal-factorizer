@@ -23,50 +23,61 @@ const AddNode = connect(null, {addNode})(
 
 const strToParents = s => Set(s.split(/\s+/))
 
+const nodeInParentEditMode =
+  (state) => state.getIn(['local', 'nodeInParentEditMode'])
+
 const getIsParent = (state, node) => {
-  return node.parents.has(state.getIn(['local', 'parentEditNode']))
+  return node.parents.has(nodeInParentEditMode(state))
 }
 
-const Node = connect(
+const ParentEditModeCheckbox = connect(
   (state, {node, nodeId}) => ({
-    parentEdit: state.getIn(['local', 'parentEditNode']) === nodeId,
-    globalParentEdit: state.getIn(['local', 'parentEditNode']) != null,
-    parentNodeId: state.getIn(['local', 'parentEditNode']),
-    isParent: getIsParent(state, node)
+    parentEdit: nodeInParentEditMode(state) === nodeId,
   }),
   (dispatch, {nodeId}) => ({
-    removeNode: () => dispatch(removeNode({nodeId})),
-    updateNode: (node) => dispatch(updateNode({nodeId, node})),
     toggleParentEdit:
       (toggle) => dispatch(toggleNodeParentsEditing({nodeId, toggle})),
+  })
+)(({parentEdit, toggleParentEdit}) =>
+  e('input', {
+      type: 'checkbox',
+      onChange: e => toggleParentEdit(e.target.checked),
+      checked: parentEdit
+  })
+)
+
+const ParentCheckbox = connect(
+  (state, {node, nodeId}) => ({
+    someNodeInParentEditMode: nodeInParentEditMode(state) != null,
+    thisNodeIsParent: getIsParent(state, node),
+    parentNodeId: nodeInParentEditMode(state)
+  }),
+  (dispatch, {nodeId}) => ({
     toggleParent: (toggle, parentNodeId) => dispatch(toggleParent({
       childNodeId: nodeId,
       parentNodeId,
       toggle
     }))
   })
+)(({someNodeInParentEditMode, thisNodeIsParent, parentNodeId, toggleParent}) =>
+    e('input', {
+      style: {visibility: someNodeInParentEditMode ? 'visible' : 'hidden'},
+      type: 'checkbox',
+      checked: thisNodeIsParent,
+      onChange: e => toggleParent(e.target.checked, parentNodeId)
+    })
+)
+
+const Node = connect(
+  (dispatch, {nodeId}) => ({
+    removeNode: () => dispatch(removeNode({nodeId})),
+    updateNode: (node) => dispatch(updateNode({nodeId, node})),
+  })
 )(
-  ({
-    nodeId,
-    node,
-    parentEdit,
-    parentNodeId,
-    isParent,
-    globalParentEdit,
-    removeNode,
-    updateNode,
-    toggleParentEdit,
-    toggleParent,
-    canvas
-  }) => e(
+  ({nodeId, node, removeNode, updateNode, canvas}) => e(
     Endpoint,
     {style: {marginTop: '1em', padding: '0 0.5em'}, canvas, endpoint: nodeId},
-    e('input', {
-      style: {visibility: globalParentEdit ? 'visible' : 'hidden'},
-      type: 'checkbox',
-      checked: isParent,
-      onChange: e => toggleParent(e.target.checked, parentNodeId)
-    }),
+    e(ParentCheckbox, {node, nodeId}),
     nodeId,
     ' ',
     e('input', {
@@ -81,11 +92,7 @@ const Node = connect(
     }),
     ' ',
     e('button', {onClick: removeNode}, 'del'),
-    e('input', {
-      type: 'checkbox',
-      onChange: e => toggleParentEdit(e.target.checked),
-      checked: parentEdit
-    })
+    e(ParentEditModeCheckbox, {node, nodeId}),
   )
 )
 
