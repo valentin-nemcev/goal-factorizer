@@ -4,9 +4,7 @@ import { Map, List, OrderedMap, Record, Set } from 'immutable'
 
 const Node = Record({text: 'Node', type: null, parents: Set()})
 
-let lastId = 0
-
-export const addNode = createAction('addNode')
+export const addNodeWithId = createAction('addNodeWithId')
 export const removeNode = createAction('removeNode')
 export const updateNode = createAction('updateNode')
 
@@ -15,12 +13,21 @@ export const toggleNodeParentsEditing =
 
 export const toggleParent = createAction('toggleParent')
 
+let lastId = 0
+const generateId = () => String(lastId++)
+
+export const addNode = node => dispatch => {
+  const nodeId = generateId()
+  dispatch(addNodeWithId({nodeId, node}))
+  return nodeId
+}
+
 export const reduceState = combineReducers({
   nodes: createReducer({
-    [addNode]: (nodes, node) => nodes.set(String(lastId++), new Node(node)),
+    [addNodeWithId]: (nodes, {nodeId, node}) => nodes.set(nodeId, new Node(node)),
     [removeNode]: (nodes, {nodeId}) => nodes.delete(nodeId),
     [updateNode]: (nodes, {nodeId, node}) => nodes.mergeIn([nodeId], node),
-    [toggleParent]: (nodes, {childNodeId, parentNodeId, toggle}) =>
+    [toggleParent]: (nodes, {childNodeId, parentNodeId, toggle = true}) =>
       nodes.updateIn(
         [childNodeId, 'parents'],
         parents => parents[toggle ? 'add' : 'delete'](parentNodeId)
@@ -55,9 +62,13 @@ export const nodeInParentEditModeisParent = (state, node) => {
 }
 
 export const setSampleState = (dispatch) => {
-  console.log(dispatch(addNode({text: 'Goal 1', type: 'goal', parents: Set(['2', '4'])})))
-  dispatch(addNode({text: 'Goal 2', type: 'goal', parents: Set(['2'])}))
-  dispatch(addNode({text: 'Action 1', type: 'action'}))
+  const goalId1 = dispatch(addNode({text: 'Goal 1', type: 'goal'}))
+  const goalId2 = dispatch(addNode({text: 'Goal 2', type: 'goal'}))
+  const actionId1 = dispatch(addNode({text: 'Action 1', type: 'action'}))
   dispatch(addNode({text: 'Action 2', type: 'action'}))
-  dispatch(addNode({text: 'Action 3', type: 'action'}))
+  const actionId3 = dispatch(addNode({text: 'Action 3', type: 'action'}))
+
+  dispatch(toggleParent({childNodeId: goalId1, parentNodeId: actionId1}))
+  dispatch(toggleParent({childNodeId: goalId1, parentNodeId: actionId3}))
+  dispatch(toggleParent({childNodeId: goalId2, parentNodeId: actionId1}))
 }

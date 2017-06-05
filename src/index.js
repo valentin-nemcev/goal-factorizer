@@ -2,6 +2,7 @@ import { createElement as e } from 'react'
 import { render } from 'react-dom'
 
 import { compose, createStore, applyMiddleware } from 'redux'
+import thunk from 'redux-thunk'
 import { Provider } from 'react-redux'
 import { createLogger } from 'redux-logger'
 
@@ -15,7 +16,8 @@ const logger = createLogger({
 const store = createStore(
   reduceState,
   compose(
-    applyMiddleware(logger),
+    applyMiddleware(thunk),
+    applyMiddleware(logger)
     // persistStore(db)
   )
 )
