@@ -3,7 +3,11 @@ import { combineReducers } from 'redux-immutable'
 import { Map, List, OrderedMap, Record, Set } from 'immutable'
 
 const Node = Record({text: 'Node', type: null})
-const Edge = Record({sourceId: null, targetId: null})
+class Edge extends Record({sourceId: null, targetId: null}) {
+  isConnectedTo (nodeId) {
+    return this.sourceId === nodeId || this.targetId === nodeId
+  }
+}
 
 export const addNodeWithId = createAction('addNodeWithId')
 export const removeNode = createAction('removeNode')
@@ -31,12 +35,16 @@ export const reduceState = combineReducers({
   }, OrderedMap()),
   edges: createReducer({
     [toggleEdge]: (edges, {sourceId, targetId, toggle = true}) =>
-      edges[toggle ? 'add' : 'delete'](new Edge({sourceId, targetId}))
+      edges[toggle ? 'add' : 'delete'](new Edge({sourceId, targetId})),
+    [removeNode]:
+      (edges, {nodeId}) => edges.filterNot(e => e.isConnectedTo(nodeId))
   }, Set()),
   local: combineReducers({
     nodeIdInTargetEditMode: createReducer({
       [toggleNodeTargetsEditing]:
-        (prevNodeId, {nodeId, toggle}) => toggle ? nodeId : null
+        (prevNodeId, {nodeId, toggle}) => toggle ? nodeId : null,
+      [removeNode]:
+        (prevNodeId, {nodeId}) => nodeId === prevNodeId ? null : prevNodeId
     }, null)
   }, Map)
 }, Map)
