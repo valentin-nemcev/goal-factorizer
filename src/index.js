@@ -5,7 +5,7 @@ import { compose, createStore, applyMiddleware } from 'redux'
 import { Provider } from 'react-redux'
 import { createLogger } from 'redux-logger'
 
-import { reduceState } from './state'
+import { reduceState, setSampleState } from './state'
 import App from './App'
 
 const logger = createLogger({
@@ -21,6 +21,8 @@ const store = createStore(
 )
 
 window.store = store
+
+setSampleState(store.dispatch)
 
 render(
   e(Provider, {store}, e(App)),

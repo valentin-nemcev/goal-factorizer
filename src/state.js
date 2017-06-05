@@ -26,11 +26,6 @@ export const reduceState = combineReducers({
         parents => parents[toggle ? 'add' : 'delete'](parentNodeId)
       )
   }, OrderedMap({
-    [lastId++]: new Node({text: 'Goal 1', type: 'goal', parents: Set(['2', '4'])}),
-    [lastId++]: new Node({text: 'Goal 2', type: 'goal', parents: Set(['2'])}),
-    [lastId++]: new Node({text: 'Action 1', type: 'action'}),
-    [lastId++]: new Node({text: 'Action 2', type: 'action'}),
-    [lastId++]: new Node({text: 'Action 3', type: 'action'})
   })),
   local: combineReducers({
     nodeInParentEditMode: createReducer({
@@ -57,4 +52,12 @@ export const nodeInParentEditMode =
 
 export const nodeInParentEditModeisParent = (state, node) => {
   return node.parents.has(nodeInParentEditMode(state))
+}
+
+export const setSampleState = (dispatch) => {
+  console.log(dispatch(addNode({text: 'Goal 1', type: 'goal', parents: Set(['2', '4'])})))
+  dispatch(addNode({text: 'Goal 2', type: 'goal', parents: Set(['2'])}))
+  dispatch(addNode({text: 'Action 1', type: 'action'}))
+  dispatch(addNode({text: 'Action 2', type: 'action'}))
+  dispatch(addNode({text: 'Action 3', type: 'action'}))
 }
