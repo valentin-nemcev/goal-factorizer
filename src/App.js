@@ -61,6 +61,7 @@ const ParentCheckbox = connect(
 )
 
 const Node = connect(
+  null,
   (dispatch, {nodeId}) => ({
     removeNode: () => dispatch(removeNode({nodeId})),
     updateNode: (node) => dispatch(updateNode({nodeId, node}))
