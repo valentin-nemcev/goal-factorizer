@@ -1,6 +1,5 @@
 import { createElement as e } from 'react'
 import { connect } from 'react-redux'
-import { Set } from 'immutable'
 import { withCanvas, Endpoint, Edge } from './plumb'
 
 import {
@@ -22,8 +21,6 @@ const AddNode = connect(null, {addNode})(
     'Add ' + type
   )
 )
-
-const strToParents = s => Set(s.split(/\s+/))
 
 const ParentEditModeCheckbox = connect(
   (state, {node, nodeId}) => ({
@@ -73,13 +70,6 @@ const Node = connect(
     Endpoint,
     {style: {marginTop: '1em', padding: '0 0.5em'}, canvas, endpoint: nodeId},
     e(ParentCheckbox, {node, nodeId}),
-    nodeId,
-    ' ',
-    e('input', {
-      onChange: e => updateNode({parents: strToParents(e.target.value)}),
-      value: node.parents.toArray().join(' '),
-      size: 3
-    }),
     ' ',
     e('input', {
       onChange: e => updateNode({text: e.target.value}),
