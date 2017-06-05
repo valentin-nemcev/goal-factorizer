@@ -8,10 +8,10 @@ import {
   addNode,
   removeNode,
   updateNode,
-  toggleNodeParentsEditing,
-  toggleParent,
-  nodeInParentEditMode,
-  nodeInParentEditModeisParent
+  toggleNodeTargetsEditing,
+  toggleEdge,
+  nodeIdInTargetEditMode,
+  nodeInTargetEditModeisTarget
 } from './state'
 
 const AddNode = connect(null, {addNode})(
@@ -22,41 +22,41 @@ const AddNode = connect(null, {addNode})(
   )
 )
 
-const ParentEditModeCheckbox = connect(
+const TargetEditModeCheckbox = connect(
   (state, {node, nodeId}) => ({
-    parentEdit: nodeInParentEditMode(state) === nodeId
+    targetEdit: nodeIdInTargetEditMode(state) === nodeId
   }),
   (dispatch, {nodeId}) => ({
-    toggleParentEdit:
-      (toggle) => dispatch(toggleNodeParentsEditing({nodeId, toggle}))
+    toggleTargetEdit:
+      (toggle) => dispatch(toggleNodeTargetsEditing({nodeId, toggle}))
   })
-)(({parentEdit, toggleParentEdit}) =>
+)(({targetEdit, toggleTargetEdit}) =>
   e('input', {
     type: 'checkbox',
-    onChange: e => toggleParentEdit(e.target.checked),
-    checked: parentEdit
+    onChange: e => toggleTargetEdit(e.target.checked),
+    checked: targetEdit
   })
 )
 
-const ParentCheckbox = connect(
+const TargetCheckbox = connect(
   (state, {node, nodeId}) => ({
-    someNodeInParentEditMode: nodeInParentEditMode(state) != null,
-    thisNodeIsParent: nodeInParentEditModeisParent(state, node),
-    parentNodeId: nodeInParentEditMode(state)
+    someNodeInTargetEditMode: nodeIdInTargetEditMode(state) != null,
+    thisNodeIsTarget: nodeInTargetEditModeisTarget(state, nodeId),
+    sourceId: nodeIdInTargetEditMode(state)
   }),
   (dispatch, {nodeId}) => ({
-    toggleParent: (toggle, parentNodeId) => dispatch(toggleParent({
-      childNodeId: nodeId,
-      parentNodeId,
+    toggleEdge: (toggle, sourceId) => dispatch(toggleEdge({
+      targetId: nodeId,
+      sourceId,
       toggle
     }))
   })
-)(({someNodeInParentEditMode, thisNodeIsParent, parentNodeId, toggleParent}) =>
+)(({someNodeInTargetEditMode, thisNodeIsTarget, sourceId, toggleEdge}) =>
     e('input', {
-      style: {visibility: someNodeInParentEditMode ? 'visible' : 'hidden'},
+      style: {visibility: someNodeInTargetEditMode ? 'visible' : 'hidden'},
       type: 'checkbox',
-      checked: thisNodeIsParent,
-      onChange: e => toggleParent(e.target.checked, parentNodeId)
+      checked: thisNodeIsTarget,
+      onChange: e => toggleEdge(e.target.checked, sourceId)
     })
 )
 
@@ -70,7 +70,7 @@ const Node = connect(
   ({nodeId, node, removeNode, updateNode, canvas}) => e(
     Endpoint,
     {style: {marginTop: '1em', padding: '0 0.5em'}, canvas, endpoint: nodeId},
-    e(ParentCheckbox, {node, nodeId}),
+    e(TargetCheckbox, {node, nodeId}),
     ' ',
     e('input', {
       onChange: e => updateNode({text: e.target.value}),
@@ -78,7 +78,7 @@ const Node = connect(
     }),
     ' ',
     e('button', {onClick: removeNode}, 'del'),
-    e(ParentEditModeCheckbox, {node, nodeId}),
+    e(TargetEditModeCheckbox, {node, nodeId}),
   )
 )
 
@@ -103,10 +103,10 @@ export default connect(
         ([type, nodes]) => e(NodeList, {key: type, type, nodes, canvas})
       ),
       edges.map(
-        ({source, target}) => e(Edge, {
-          source,
-          target,
-          key: [source, target].join(':'),
+        ({sourceId, targetId}) => e(Edge, {
+          source: sourceId,
+          target: targetId,
+          key: [sourceId, targetId].join(':'),
           connection: {
             anchors: ['Right', 'Left'],
             connector: ['Bezier', {curviness: 50}],

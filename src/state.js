@@ -2,16 +2,17 @@ import { createAction, createReducer } from 'redux-act'
 import { combineReducers } from 'redux-immutable'
 import { Map, List, OrderedMap, Record, Set } from 'immutable'
 
-const Node = Record({text: 'Node', type: null, parents: Set()})
+const Node = Record({text: 'Node', type: null})
+const Edge = Record({sourceId: null, targetId: null})
 
 export const addNodeWithId = createAction('addNodeWithId')
 export const removeNode = createAction('removeNode')
 export const updateNode = createAction('updateNode')
 
-export const toggleNodeParentsEditing =
-  createAction('toggleNodeParentsEditing')
+export const toggleNodeTargetsEditing =
+  createAction('toggleNodeTargetsEditing')
 
-export const toggleParent = createAction('toggleParent')
+export const toggleEdge = createAction('toggleEdge')
 
 let lastId = 0
 const generateId = () => String(lastId++)
@@ -26,17 +27,15 @@ export const reduceState = combineReducers({
   nodes: createReducer({
     [addNodeWithId]: (nodes, {nodeId, node}) => nodes.set(nodeId, new Node(node)),
     [removeNode]: (nodes, {nodeId}) => nodes.delete(nodeId),
-    [updateNode]: (nodes, {nodeId, node}) => nodes.mergeIn([nodeId], node),
-    [toggleParent]: (nodes, {childNodeId, parentNodeId, toggle = true}) =>
-      nodes.updateIn(
-        [childNodeId, 'parents'],
-        parents => parents[toggle ? 'add' : 'delete'](parentNodeId)
-      )
-  }, OrderedMap({
-  })),
+    [updateNode]: (nodes, {nodeId, node}) => nodes.mergeIn([nodeId], node)
+  }, OrderedMap()),
+  edges: createReducer({
+    [toggleEdge]: (edges, {sourceId, targetId, toggle = true}) =>
+      edges[toggle ? 'add' : 'delete'](new Edge({sourceId, targetId}))
+  }, Set()),
   local: combineReducers({
-    nodeInParentEditMode: createReducer({
-      [toggleNodeParentsEditing]:
+    nodeIdInTargetEditMode: createReducer({
+      [toggleNodeTargetsEditing]:
         (prevNodeId, {nodeId, toggle}) => toggle ? nodeId : null
     }, null)
   }, Map)
@@ -47,19 +46,16 @@ export const nodesByType = (state) =>
     t => [t, state.get('nodes').filter(n => n.type === t)]
   )
 
-export const edges = (state) =>
-  state.get('nodes').entrySeq().flatMap(
-    ([childId, child]) => child.parents.map(
-      parentId => ({source: parentId, target: childId})
-    )
-  )
+export const edges = (state) => state.get('edges')
 
-export const nodeInParentEditMode =
-  (state) => state.getIn(['local', 'nodeInParentEditMode'])
+export const nodeIdInTargetEditMode =
+  (state) => state.getIn(['local', 'nodeIdInTargetEditMode'])
 
-export const nodeInParentEditModeisParent = (state, node) => {
-  return node.parents.has(nodeInParentEditMode(state))
-}
+export const nodeInTargetEditModeisTarget = (state, nodeId) =>
+  state.get('edges').has(new Edge({
+    sourceId: nodeIdInTargetEditMode(state),
+    targetId: nodeId
+  }))
 
 export const setSampleState = (dispatch) => {
   const goalId1 = dispatch(addNode({text: 'Goal 1', type: 'goal'}))
@@ -68,7 +64,7 @@ export const setSampleState = (dispatch) => {
   dispatch(addNode({text: 'Action 2', type: 'action'}))
   const actionId3 = dispatch(addNode({text: 'Action 3', type: 'action'}))
 
-  dispatch(toggleParent({childNodeId: goalId1, parentNodeId: actionId1}))
-  dispatch(toggleParent({childNodeId: goalId1, parentNodeId: actionId3}))
-  dispatch(toggleParent({childNodeId: goalId2, parentNodeId: actionId1}))
+  dispatch(toggleEdge({targetId: goalId1, sourceId: actionId1}))
+  dispatch(toggleEdge({targetId: goalId1, sourceId: actionId3}))
+  dispatch(toggleEdge({targetId: goalId2, sourceId: actionId1}))
 }
