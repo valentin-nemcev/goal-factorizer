@@ -9,7 +9,7 @@ import {
   removeNode,
   updateNode,
   toggleNodeTargetsEditing,
-  toggleEdge,
+  toggleTarget,
   nodeIdInTargetEditMode,
   nodeInTargetEditModeisTarget
 } from './state'
@@ -41,22 +41,17 @@ const TargetEditModeCheckbox = connect(
 const TargetCheckbox = connect(
   (state, {node, nodeId}) => ({
     someNodeInTargetEditMode: nodeIdInTargetEditMode(state) != null,
-    thisNodeIsTarget: nodeInTargetEditModeisTarget(state, nodeId),
-    sourceId: nodeIdInTargetEditMode(state)
+    thisNodeIsTarget: nodeInTargetEditModeisTarget(state, nodeId)
   }),
   (dispatch, {nodeId}) => ({
-    toggleEdge: (toggle, sourceId) => dispatch(toggleEdge({
-      targetId: nodeId,
-      sourceId,
-      toggle
-    }))
+    toggleTarget: (toggle) => dispatch(toggleTarget({toggle, nodeId}))
   })
-)(({someNodeInTargetEditMode, thisNodeIsTarget, sourceId, toggleEdge}) =>
+)(({someNodeInTargetEditMode, thisNodeIsTarget, toggleTarget}) =>
     e('input', {
       style: {visibility: someNodeInTargetEditMode ? 'visible' : 'hidden'},
       type: 'checkbox',
       checked: thisNodeIsTarget,
-      onChange: e => toggleEdge(e.target.checked, sourceId)
+      onChange: e => toggleTarget(e.target.checked)
     })
 )
 

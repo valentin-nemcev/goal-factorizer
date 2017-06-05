@@ -21,12 +21,6 @@ export const toggleEdge = createAction('toggleEdge')
 let lastId = 0
 const generateId = () => String(lastId++)
 
-export const addNode = node => dispatch => {
-  const nodeId = generateId()
-  dispatch(addNodeWithId({nodeId, node}))
-  return nodeId
-}
-
 export const reduceState = combineReducers({
   nodes: createReducer({
     [addNodeWithId]: (nodes, {nodeId, node}) => nodes.set(nodeId, new Node(node)),
@@ -63,6 +57,19 @@ export const nodeInTargetEditModeisTarget = (state, nodeId) =>
   state.get('edges').has(new Edge({
     sourceId: nodeIdInTargetEditMode(state),
     targetId: nodeId
+  }))
+
+export const addNode = node => dispatch => {
+  const nodeId = generateId()
+  dispatch(addNodeWithId({nodeId, node}))
+  return nodeId
+}
+
+export const toggleTarget = ({toggle, nodeId}) => (dispatch, getState) =>
+  dispatch(toggleEdge({
+    targetId: nodeId,
+    sourceId: nodeIdInTargetEditMode(getState()),
+    toggle
   }))
 
 export const setSampleState = (dispatch) => {
