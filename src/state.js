@@ -40,14 +40,21 @@ export const reduceState = combineReducers({
   }, Map)
 }, Map)
 
-export const getNodesByType = (state) =>
+export const nodesByType = (state) =>
   List(['action', 'goal']).map(
     t => [t, state.get('nodes').filter(n => n.type === t)]
   )
 
-export const getEdges = (state) =>
+export const edges = (state) =>
   state.get('nodes').entrySeq().flatMap(
     ([childId, child]) => child.parents.map(
       parentId => ({source: parentId, target: childId})
     )
   )
+
+export const nodeInParentEditMode =
+  (state) => state.getIn(['local', 'nodeInParentEditMode'])
+
+export const nodeInParentEditModeisParent = (state, node) => {
+  return node.parents.has(nodeInParentEditMode(state))
+}

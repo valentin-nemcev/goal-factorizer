@@ -4,13 +4,15 @@ import { Set } from 'immutable'
 import { withCanvas, Endpoint, Edge } from './plumb'
 
 import {
-  getNodesByType,
-  getEdges,
+  nodesByType,
+  edges,
   addNode,
   removeNode,
   updateNode,
   toggleNodeParentsEditing,
-  toggleParent
+  toggleParent,
+  nodeInParentEditMode,
+  nodeInParentEditModeisParent
 } from './state'
 
 const AddNode = connect(null, {addNode})(
@@ -23,33 +25,26 @@ const AddNode = connect(null, {addNode})(
 
 const strToParents = s => Set(s.split(/\s+/))
 
-const nodeInParentEditMode =
-  (state) => state.getIn(['local', 'nodeInParentEditMode'])
-
-const getIsParent = (state, node) => {
-  return node.parents.has(nodeInParentEditMode(state))
-}
-
 const ParentEditModeCheckbox = connect(
   (state, {node, nodeId}) => ({
-    parentEdit: nodeInParentEditMode(state) === nodeId,
+    parentEdit: nodeInParentEditMode(state) === nodeId
   }),
   (dispatch, {nodeId}) => ({
     toggleParentEdit:
-      (toggle) => dispatch(toggleNodeParentsEditing({nodeId, toggle})),
+      (toggle) => dispatch(toggleNodeParentsEditing({nodeId, toggle}))
   })
 )(({parentEdit, toggleParentEdit}) =>
   e('input', {
-      type: 'checkbox',
-      onChange: e => toggleParentEdit(e.target.checked),
-      checked: parentEdit
+    type: 'checkbox',
+    onChange: e => toggleParentEdit(e.target.checked),
+    checked: parentEdit
   })
 )
 
 const ParentCheckbox = connect(
   (state, {node, nodeId}) => ({
     someNodeInParentEditMode: nodeInParentEditMode(state) != null,
-    thisNodeIsParent: getIsParent(state, node),
+    thisNodeIsParent: nodeInParentEditModeisParent(state, node),
     parentNodeId: nodeInParentEditMode(state)
   }),
   (dispatch, {nodeId}) => ({
@@ -71,7 +66,7 @@ const ParentCheckbox = connect(
 const Node = connect(
   (dispatch, {nodeId}) => ({
     removeNode: () => dispatch(removeNode({nodeId})),
-    updateNode: (node) => dispatch(updateNode({nodeId, node})),
+    updateNode: (node) => dispatch(updateNode({nodeId, node}))
   })
 )(
   ({nodeId, node, removeNode, updateNode, canvas}) => e(
@@ -107,8 +102,8 @@ const NodeList = ({type, nodes, canvas}) =>
 
 export default connect(
   state => ({
-    nodesByType: getNodesByType(state),
-    edges: getEdges(state)
+    nodesByType: nodesByType(state),
+    edges: edges(state)
   })
 )(
   withCanvas(
