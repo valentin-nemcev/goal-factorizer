@@ -25,6 +25,7 @@
   },
   "devDependencies": {
     "cz-conventional-changelog": "^2.0.0",
+    "immutable-devtools": "0.0.7",
     "prettier-standard": "^5.0.0",
     "react-scripts": "^0.9.5",
     "standard": "^9.0.2"
