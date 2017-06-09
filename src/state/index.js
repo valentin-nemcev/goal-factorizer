@@ -21,7 +21,7 @@ export const toggleEdge = createAction('toggleEdge')
 let lastId = 0
 const generateId = () => String(lastId++)
 
-export const reduceState = combineReducers({
+export default combineReducers({
   nodes: createReducer({
     [addNodeWithId]: (nodes, {nodeId, node}) => nodes.set(nodeId, new Node(node)),
     [removeNode]: (nodes, {nodeId}) => nodes.delete(nodeId),

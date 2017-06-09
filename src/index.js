@@ -10,8 +10,8 @@ import installDevTools from 'immutable-devtools'
 
 import PouchDB from 'pouchdb'
 
-import { reduceState, setSampleState } from './state'
-import persistStore from './persistance'
+import reduceState, { setSampleState } from './state'
+import persistStore from './persistence'
 import App from './App'
 
 const logger = createLogger({
