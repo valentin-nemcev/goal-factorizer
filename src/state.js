@@ -2,7 +2,7 @@ import { createAction, createReducer } from 'redux-act'
 import { combineReducers } from 'redux-immutable'
 import { Map, List, OrderedMap, Record, Set } from 'immutable'
 
-const Node = Record({text: 'Node', type: null})
+class Node extends Record({text: 'Node', type: null}) { }
 class Edge extends Record({sourceId: null, targetId: null}) {
   isConnectedTo (nodeId) {
     return this.sourceId === nodeId || this.targetId === nodeId

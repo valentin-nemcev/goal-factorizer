@@ -21,7 +21,8 @@
     "redux-act": "^1.1.1",
     "redux-immutable": "^4.0.0",
     "redux-logger": "^3.0.1",
-    "redux-thunk": "^2.2.0"
+    "redux-thunk": "^2.2.0",
+    "uuid-v4": "^0.1.0"
   },
   "devDependencies": {
     "cz-conventional-changelog": "^2.0.0",
