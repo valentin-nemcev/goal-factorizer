@@ -10,13 +10,9 @@ import installDevTools from 'immutable-devtools'
 
 import PouchDB from 'pouchdb'
 
-import reduceState, { setSampleState } from './state'
+import reduceState, { setSampleState, collections } from './state'
 import persistStore from './persistence'
 import App from './App'
-
-const logger = createLogger({
-  stateTransformer: (state) => state.toJS()
-})
 
 installDevTools(Immutable)
 PouchDB.debug.enable('pouchdb:api')
@@ -26,15 +22,15 @@ const db = new PouchDB('goal-factorizer')
 const store = createStore(
   reduceState,
   compose(
+    persistStore(db, collections),
     applyMiddleware(thunk),
-    applyMiddleware(logger),
-    persistStore(db)
+    applyMiddleware(createLogger())
   )
 )
 
 window.store = store
 
-setSampleState(store.dispatch)
+setSampleState(() => {})
 
 render(
   e(Provider, {store}, e(App)),

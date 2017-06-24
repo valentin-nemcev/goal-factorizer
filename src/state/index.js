@@ -1,3 +1,5 @@
+import uuid from 'uuid-v4'
+
 import { createAction, createReducer } from 'redux-act'
 import { combineReducers } from 'redux-immutable'
 import { Map, List, OrderedMap, Record, Set } from 'immutable'
@@ -9,6 +11,11 @@ class Edge extends Record({sourceId: null, targetId: null}) {
   }
 }
 
+export const collections = {
+  edges: a => new Edge(a),
+  nodes: a => new Node(a)
+}
+
 export const addNodeWithId = createAction('addNodeWithId')
 export const removeNode = createAction('removeNode')
 export const updateNode = createAction('updateNode')
@@ -18,8 +25,7 @@ export const toggleNodeTargetsEditing =
 
 export const toggleEdge = createAction('toggleEdge')
 
-let lastId = 0
-const generateId = () => String(lastId++)
+const generateId = uuid
 
 export default combineReducers({
   nodes: createReducer({
