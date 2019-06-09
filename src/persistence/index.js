@@ -1,39 +1,12 @@
 import uuid from 'uuid-v4'
 
 import { debounce, zip, zipWith } from 'lodash'
-import { is, Set, Map, Seq } from 'immutable'
+import { Set, Seq } from 'immutable'
 
 import { createReducer, createAction } from 'redux-act'
 import reduceReducers from 'reduce-reducers'
 
-const diffSets = (prevSet, currentSet) => ({
-  removed: prevSet.subtract(currentSet).valueSeq()
-    .map(v => ({prevValue: v})),
-  added: currentSet.subtract(prevSet).valueSeq()
-    .map(v => ({currentValue: v}))
-})
-
-const diffMaps = (prevMap, currentMap) => ({
-  removed: prevMap.entrySeq()
-    .filterNot(([k, v]) => currentMap.has(k))
-    .map(([key, v]) => ({key, prevValue: v})),
-  updated: prevMap.entrySeq()
-    .map(([k, v]) => [k, v, currentMap.get(k)])
-    .filterNot(([k, prevV, v]) => v == null || is(v, prevV))
-    .map(([key, prevV, v]) => ({key, prevValue: prevV, currentValue: v})),
-  added: currentMap.entrySeq()
-    .filterNot(([k, v]) => prevMap.has(k))
-    .map(([key, v]) => ({key, currentValue: v}))
-})
-
-const diffCol = (prevCol, currentCol) => {
-  let diff
-  if (Set.isSet(currentCol)) diff = diffSets
-  else if (Map.isMap(currentCol)) diff = diffMaps
-  else throw new Error('Unknown collection type')
-
-  return diff(prevCol, currentCol)
-}
+import diffCollection from './diffCollection'
 
 const newDocMeta = (colKey, key) =>
   ({_id: colKey + '-' + (key || uuid())})
@@ -71,17 +44,14 @@ const diffToBulk = (persitanceState, colKey, {removed, updated = [], added}) => 
   }))
 ]
 
-const collectionsByKey = (state, collections) =>
-  collections.map(c => state.get(c))
-
 const persist = async (db, persitanceState, collections, prevState, currentState) => {
   const collectionKeys = Object.keys(collections)
   const bulk = zip(
     collectionKeys,
-    ...[prevState, currentState].map(s => collectionsByKey(s, collectionKeys))
+    ...[prevState, currentState].map(s => collectionKeys.map(c => s.get(c)))
   ).reduce(
     (docs, [key, prevCol, currentCol]) => docs.concat(
-      diffToBulk(persitanceState, key, diffCol(prevCol, currentCol))
+      diffToBulk(persitanceState, key, diffCollection(prevCol, currentCol))
     ),
     []
   ).filter(
@@ -114,6 +84,18 @@ const extractDoc = row => {
 
 const loadCollections = createAction('loadCollections')
 
+const loadCollectionsReducer = createReducer({
+  [loadCollections]: (state, payload) =>
+    Seq(payload).reduce(
+      (state, values, colName) => state.update(
+        colName,
+        (col) => col.clear()
+        .merge(Set.isSet(col) ? Seq.Keyed(values).valueSeq() : values)
+      ),
+      state
+    )
+})
+
 const fetch = async (db, persitanceState, dispatch, collections) => {
   const result = Seq(collections).map(() => []).toObject();
   (await db.allDocs({include_docs: true})).rows.map(extractDoc).forEach(
@@ -129,17 +111,7 @@ const fetch = async (db, persitanceState, dispatch, collections) => {
 
 export default (db, collections) => createStore => (reducer, ...args) => {
   reducer = reduceReducers(
-    createReducer({
-      [loadCollections]: (state, payload) =>
-        Seq(payload).reduce(
-          (state, values, colName) => state.update(
-            colName,
-            (col) => col.clear()
-              .merge(Set.isSet(col) ? Seq.Keyed(values).valueSeq() : values)
-          ),
-          state
-        )
-    }),
+    loadCollectionsReducer,
     reducer
   )
   const store = createStore(reducer, ...args)

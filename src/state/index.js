@@ -2,7 +2,7 @@ import uuid from 'uuid-v4'
 
 import { createAction, createReducer } from 'redux-act'
 import { combineReducers } from 'redux-immutable'
-import { Map, List, OrderedMap, Record, Set } from 'immutable'
+import { Map, List, Record, Set } from 'immutable'
 
 class Node extends Record({text: 'Node', type: null}) { }
 class Edge extends Record({sourceId: null, targetId: null}) {
@@ -32,7 +32,7 @@ export default combineReducers({
     [addNodeWithId]: (nodes, {nodeId, node}) => nodes.set(nodeId, new Node(node)),
     [removeNode]: (nodes, {nodeId}) => nodes.delete(nodeId),
     [updateNode]: (nodes, {nodeId, node}) => nodes.mergeIn([nodeId], node)
-  }, OrderedMap()),
+  }, Map()),
   edges: createReducer({
     [toggleEdge]: (edges, {sourceId, targetId, toggle = true}) =>
       edges[toggle ? 'add' : 'delete'](new Edge({sourceId, targetId})),
