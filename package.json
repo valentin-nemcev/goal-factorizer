@@ -5,7 +5,7 @@
   "dependencies": {
     "immutable": "^3.8.1",
     "jsplumb": "^2.4.2",
-    "lodash": "^4.17.4",
+    "lodash": "^4.17.21",
     "normalize.css": "^6.0.0",
     "pouchdb": "^6.1.2",
     "radium": "^0.18.2",
